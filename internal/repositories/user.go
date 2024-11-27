@@ -5,18 +5,21 @@ import (
 	"github.com/Bruno07/tasks-api/internal/models"
 )
 
-type UserRepository struct {}
+type UserRepository struct{}
 
 func (ur UserRepository) Save(user *models.User) (*models.User, error) {
 
-	result := db.GetInstance().Model(user).Create(map[string]interface{} {
-		"Name": user.Name,
-		"Email": user.Email,
-		"Password": user.Password,
-		"ProfileId": user.ProfileId,
-	})
+	result := db.GetInstance().Create(&user)
 
 	return user, result.Error
 
 }
 
+func (ur UserRepository) GetByEmail(email string) models.User {
+
+	var user models.User
+
+	db.GetInstance().Where("email = ?", email).Find(&user)
+
+	return user
+}

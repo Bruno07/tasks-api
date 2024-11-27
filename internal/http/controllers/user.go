@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 
+	"github.com/Bruno07/tasks-api/internal/http/policies"
 	"github.com/Bruno07/tasks-api/internal/http/requests"
 	"github.com/Bruno07/tasks-api/internal/services"
 	"github.com/gin-gonic/gin"
@@ -14,11 +15,13 @@ import (
 type UserController struct {
 	UserService services.UserService
 	Validator   *validator.Validate
+	TaskPolicy  policies.TaskPolicy
 }
 
 func NewUserController() *UserController {
 	return &UserController{
 		UserService: services.UserService{},
+		TaskPolicy:  policies.TaskPolicy{},
 		Validator:   validator.New(),
 	}
 }

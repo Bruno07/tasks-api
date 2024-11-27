@@ -11,11 +11,11 @@ type User struct {
 	ID        int64  `gorm:"primaryKey;autoIncrement"`
 	Name      string `gorm:"size:150;not null"`
 	Email     string `gorm:"size:200;not null"`
-	Password  string `gorm:"size"`
+	Password  string `gorm:"size:255"`
 	ProfileId int64
 	Profile   Profile   
-	UpdatedAt time.Time `gorm:"autoUpdateTime:datetime"`
-	CreatedAt time.Time `gorm:"autoCreateTime:datetime"`
+	UpdatedAt time.Time `gorm:"autoUpdateTime"`
+	CreatedAt time.Time `gorm:"autoCreateTime"`
 }
 
 func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
