@@ -14,8 +14,8 @@ type User struct {
 	Password  string `gorm:"size:255"`
 	ProfileId int64
 	Profile   Profile   
-	UpdatedAt time.Time `gorm:"autoUpdateTime"`
-	CreatedAt time.Time `gorm:"autoCreateTime"`
+	UpdatedAt time.Time `gorm:"autoUpdateTime;datetime"`
+	CreatedAt time.Time `gorm:"autoCreateTime;datetime"`
 }
 
 func (u *User) BeforeCreate(tx *gorm.DB) (err error) {

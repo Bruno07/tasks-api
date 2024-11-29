@@ -13,6 +13,7 @@ type JWTService struct{}
 func (jws JWTService) generateToken(responseJWT responses.JWTResponse) (*string, error) {
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"user_id":     responseJWT.User.ID,
 		"name":        responseJWT.User.Name,
 		"email":       responseJWT.User.Email,
 		"permissions": responseJWT.User.Permissions,
