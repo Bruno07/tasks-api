@@ -1,10 +1,13 @@
 package services
 
 import (
+	"encoding/json"
 	"errors"
 
 	"github.com/Bruno07/tasks-api/internal/http/requests"
 	"github.com/Bruno07/tasks-api/internal/http/responses"
+	"github.com/Bruno07/tasks-api/internal/infra/queue"
+	"github.com/Bruno07/tasks-api/internal/models"
 	"github.com/Bruno07/tasks-api/internal/repositories"
 )
 
@@ -31,7 +34,10 @@ func (ts TaskService) Create(request requests.TaskRequest) (responses.TaskRespon
 		return responses.TaskResponse{}, err
 	}
 
-	// Send to queue
+	notification := models.Notification{Payload: "User created a new task", UserID: request.UserID}
+	body, _ := json.Marshal(notification)
+	ch := queue.GetInstanceQueue()
+	queue.Notify(body, "notify_ex", "", ch)
 
 	user, _ := ts.userRepo.Find(taskCreated.UserID)
 
@@ -119,7 +125,10 @@ func (ts TaskService) Update(request requests.TaskRequest) (responses.TaskRespon
 		return responses.TaskResponse{}, err
 	}
 
-	// Send to queue
+	notification := models.Notification{Payload: "User updated a new task", UserID: request.UserID}
+	body, _ := json.Marshal(notification)
+	ch := queue.GetInstanceQueue()
+	queue.Notify(body, "notify_ex", "", ch)
 
 	user, _ := ts.userRepo.Find(taskUpdated.UserID)
 

@@ -13,20 +13,23 @@ import (
 )
 
 type TaskController struct {
-	TaskService services.TaskService
-	TaskPolicy  policies.TaskPolicy
+	taskService services.TaskService
+	taskPolicy  policies.TaskPolicy
 }
 
-func NewTaskController() *TaskController {
+func NewTaskController(
+	taskService services.TaskService,
+	taskPolicy policies.TaskPolicy,
+) *TaskController {
 	return &TaskController{
-		TaskService: services.TaskService{},
-		TaskPolicy:  policies.TaskPolicy{},
+		taskService: taskService,
+		taskPolicy:  taskPolicy,
 	}
 }
 
 func (tc TaskController) Create(ctx *gin.Context) {
 
-	if !tc.TaskPolicy.Allow("CREATE", ctx) {
+	if !tc.taskPolicy.Allow("CREATE", ctx) {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"message": "Permission denied!",
 		})
@@ -50,7 +53,7 @@ func (tc TaskController) Create(ctx *gin.Context) {
 	var request = requests.TaskRequest{UserID: int64(ctx.MustGet("user_id").(float64))}
 	json.Unmarshal(body, &request)
 
-	response, err := tc.TaskService.Create(request)
+	response, err := tc.taskService.Create(request)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"message": "Failed to create!",
@@ -70,7 +73,7 @@ func (tc TaskController) Create(ctx *gin.Context) {
 
 func (tc TaskController) Update(ctx *gin.Context) {
 
-	if !tc.TaskPolicy.Allow("UPDATE", ctx) {
+	if !tc.taskPolicy.Allow("UPDATE", ctx) {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"message": "Permission denied!",
 		})
@@ -109,7 +112,7 @@ func (tc TaskController) Update(ctx *gin.Context) {
 
 	json.Unmarshal(body, &request)
 
-	response, err := tc.TaskService.Update(request)
+	response, err := tc.taskService.Update(request)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"message": "Failed to update!",
@@ -129,7 +132,7 @@ func (tc TaskController) Update(ctx *gin.Context) {
 
 func (tc TaskController) Find(ctx *gin.Context) {
 
-	if !tc.TaskPolicy.Allow("VIEW", ctx) {
+	if !tc.taskPolicy.Allow("VIEW", ctx) {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"message": "Permission denied!",
 		})
@@ -150,7 +153,7 @@ func (tc TaskController) Find(ctx *gin.Context) {
 		return
 	}
 
-	task, err := tc.TaskService.Find(requests.TaskRequest{
+	task, err := tc.taskService.Find(requests.TaskRequest{
 		ID:     int64(id),
 		UserID: int64(ctx.MustGet("user_id").(float64)),
 	})
@@ -173,7 +176,7 @@ func (tc TaskController) Find(ctx *gin.Context) {
 
 func (tc TaskController) All(ctx *gin.Context) {
 
-	if !tc.TaskPolicy.Allow("VIEW", ctx) {
+	if !tc.taskPolicy.Allow("VIEW", ctx) {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"message": "Permission denied!",
 		})
@@ -183,7 +186,7 @@ func (tc TaskController) All(ctx *gin.Context) {
 		return
 	}
 
-	task, err := tc.TaskService.All(requests.TaskRequest{
+	task, err := tc.taskService.All(requests.TaskRequest{
 		UserID: int64(ctx.MustGet("user_id").(float64)),
 	})
 

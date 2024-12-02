@@ -1,9 +1,11 @@
 package config
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/Bruno07/tasks-api/internal/infra/db"
+	"github.com/Bruno07/tasks-api/internal/infra/queue"
 	"github.com/Bruno07/tasks-api/internal/models"
 	"github.com/joho/godotenv"
 )
@@ -28,7 +30,22 @@ func LoadConfig() {
 		&models.User{},
 		&models.Module{},
 		&models.Task{},
+		&models.Notification{},
 	)
+
+	fmt.Println(fmt.Sprintf("amqp://%s:%s@%s:%s/",
+		os.Getenv("QUEUE_USER"),
+		os.Getenv("QUEUE_PASSWORD"),
+		os.Getenv("QUEUE_HOST"),
+		os.Getenv("QUEUE_PORT"),
+	))
+
+	queue.Connect(fmt.Sprintf("amqp://%s:%s@%s:%s/",
+		os.Getenv("QUEUE_USER"),
+		os.Getenv("QUEUE_PASSWORD"),
+		os.Getenv("QUEUE_HOST"),
+		os.Getenv("QUEUE_PORT"),
+	))
 
 }
 

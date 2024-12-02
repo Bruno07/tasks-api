@@ -25,15 +25,20 @@ func InitRoutes() *gin.Engine {
 
 	auth.POST("/register", manager.NewUserController().Create)
 
-	auth.POST("/tasks", controllers.NewTaskController().Create)
-	auth.PUT("/tasks/:id", controllers.NewTaskController().Update)
-	auth.GET("/tasks", controllers.NewTaskController().All)
-	auth.GET("/tasks/:id", controllers.NewTaskController().Find)
-
 	taskService := services.NewTaskService(
 		&repositories.TaskRepository{},
 		&repositories.UserRepository{},
 	)
+
+	taskControllerTec := controllers.NewTaskController(
+		*taskService,
+		policies.TaskPolicy{},
+	)
+
+	auth.POST("/tasks", taskControllerTec.Create)
+	auth.PUT("/tasks/:id", taskControllerTec.Update)
+	auth.GET("/tasks", taskControllerTec.All)
+	auth.GET("/tasks/:id", taskControllerTec.Find)
 	
 	taskController := manager.NewTaskController(
 		*taskService,
