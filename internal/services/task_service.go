@@ -89,7 +89,7 @@ func (ts *TaskService) All(request requests.TaskRequest) ([]responses.TaskRespon
 	}
 
 	var tasksReponse = []responses.TaskResponse{}
-	for _, task := range tasks {
+	for _, task := range *tasks {
 
 		user, _ := ts.userRepo.Find(task.UserID)
 

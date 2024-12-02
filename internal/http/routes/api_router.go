@@ -4,6 +4,9 @@ import (
 	"github.com/Bruno07/tasks-api/internal/http/controllers"
 	"github.com/Bruno07/tasks-api/internal/http/controllers/manager"
 	"github.com/Bruno07/tasks-api/internal/http/middlewares"
+	"github.com/Bruno07/tasks-api/internal/http/policies"
+	"github.com/Bruno07/tasks-api/internal/repositories"
+	"github.com/Bruno07/tasks-api/internal/services"
 	"github.com/gin-gonic/gin"
 )
 
@@ -27,8 +30,18 @@ func InitRoutes() *gin.Engine {
 	auth.GET("/tasks", controllers.NewTaskController().All)
 	auth.GET("/tasks/:id", controllers.NewTaskController().Find)
 
-	auth.GET("/manager/tasks", manager.NewTaskController().All)
-	auth.DELETE("/manager/tasks/:id", manager.NewTaskController().Delete)
+	taskService := services.NewTaskService(
+		&repositories.TaskRepository{},
+		&repositories.UserRepository{},
+	)
+	
+	taskController := manager.NewTaskController(
+		*taskService,
+		policies.TaskPolicy{},
+	)
+
+	auth.GET("/manager/tasks", taskController.All)
+	auth.DELETE("/manager/tasks/:id", taskController.Delete)
 
 	return router
 

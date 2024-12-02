@@ -1,6 +1,7 @@
 package manager
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -11,20 +12,23 @@ import (
 )
 
 type TaskController struct {
-	TaskService services.TaskService
-	TaskPolicy  policies.TaskPolicy
+	taskService services.TaskService
+	taskPolicy  policies.TaskPolicy
 }
 
-func NewTaskController() *TaskController {
+func NewTaskController(
+	taskService services.TaskService,
+	taskPolicy policies.TaskPolicy,
+) *TaskController {
 	return &TaskController{
-		TaskService: services.TaskService{},
-		TaskPolicy:  policies.TaskPolicy{},
+		taskService: taskService,
+		taskPolicy:  taskPolicy,
 	}
 }
 
 func (tc TaskController) All(ctx *gin.Context) {
 
-	if !tc.TaskPolicy.Allow("VIEW", ctx) {
+	if !tc.taskPolicy.Allow("VIEW", ctx) {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"message": "Permission denied!",
 		})
@@ -34,7 +38,7 @@ func (tc TaskController) All(ctx *gin.Context) {
 		return
 	}
 
-	task, err := tc.TaskService.All(requests.TaskRequest{})
+	task, err := tc.taskService.All(requests.TaskRequest{})
 
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
@@ -46,6 +50,8 @@ func (tc TaskController) All(ctx *gin.Context) {
 		return
 	}
 
+	fmt.Println(task)
+
 	ctx.JSON(http.StatusOK, gin.H{
 		"data": task,
 	})
@@ -54,7 +60,7 @@ func (tc TaskController) All(ctx *gin.Context) {
 
 func (tc TaskController) Delete(ctx *gin.Context) {
 
-	if !tc.TaskPolicy.Allow("DELETE", ctx) {
+	if !tc.taskPolicy.Allow("DELETE", ctx) {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"message": "Permission denied!",
 		})
@@ -75,7 +81,7 @@ func (tc TaskController) Delete(ctx *gin.Context) {
 		return
 	}
 
-	err = tc.TaskService.Delete(requests.TaskRequest{ID: int64(id)})
+	err = tc.taskService.Delete(requests.TaskRequest{ID: int64(id)})
 
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{

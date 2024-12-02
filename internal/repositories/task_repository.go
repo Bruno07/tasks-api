@@ -2,6 +2,8 @@ package repositories
 
 import (
 	"errors"
+	"fmt"
+	"time"
 
 	"github.com/Bruno07/tasks-api/internal/http/requests"
 	"github.com/Bruno07/tasks-api/internal/infra/db"
@@ -12,7 +14,7 @@ type ITaskRepository interface {
 	Save(request requests.TaskRequest) (models.Task, error)
 	Update(request requests.TaskRequest) (models.Task, error)
 	Find(request requests.TaskRequest) (models.Task, int64, error)
-	All(request requests.TaskRequest) ([]models.Task, error)
+	All(request requests.TaskRequest) (*[]models.Task, error)
 	Delete(taskId int64) bool
 }
 
@@ -78,7 +80,7 @@ func (tr TaskRepository) Find(request requests.TaskRequest) (models.Task, int64,
 }
 
 // List all tasks through filter
-func (tr *TaskRepository) All(request requests.TaskRequest) ([]models.Task, error) {
+func (tr *TaskRepository) All(request requests.TaskRequest) (*[]models.Task, error) {
 
 	var task = models.Task{}
 	var tasks []models.Task
@@ -95,7 +97,7 @@ func (tr *TaskRepository) All(request requests.TaskRequest) ([]models.Task, erro
 
 	err := query.Find(&tasks).Error
 
-	return tasks, err
+	return &tasks, err
 
 }
 
@@ -113,7 +115,7 @@ func (tr TaskRepository) Delete(taskId int64) bool {
 
 }
 
-func (tmr *TaskMockRepository) Save(request requests.TaskRequest) (models.Task, error) {
+func (tmr TaskMockRepository) Save(request requests.TaskRequest) (models.Task, error) {
 	var err error
 	var task = models.Task{
 		Summary: request.Summary,
@@ -127,7 +129,7 @@ func (tmr *TaskMockRepository) Save(request requests.TaskRequest) (models.Task, 
 	return task, err
 }
 
-func (tmr *TaskMockRepository) Update(request requests.TaskRequest) (models.Task, error) {
+func (tmr TaskMockRepository) Update(request requests.TaskRequest) (models.Task, error) {
 
 	var err error
 	var task = models.Task{}
@@ -144,7 +146,7 @@ func (tmr *TaskMockRepository) Update(request requests.TaskRequest) (models.Task
 	return task, err
 }
 
-func (tmr *TaskMockRepository) Find(request requests.TaskRequest) (models.Task, int64, error) {
+func (tmr TaskMockRepository) Find(request requests.TaskRequest) (models.Task, int64, error) {
 
 	var err error
 	var rowsAffected int64 = 0
@@ -168,31 +170,46 @@ func (tmr *TaskMockRepository) Find(request requests.TaskRequest) (models.Task, 
 
 }
 
-func (tmr *TaskMockRepository) All(request requests.TaskRequest) ([]models.Task, error) {
+func (tmr *TaskMockRepository) All(request requests.TaskRequest) (*[]models.Task, error) {
 
 	var err error
 	var tasks = make([]models.Task, 0)
 
-	if request.ID <= 3 {
-		task := models.Task{
-			ID:            request.ID,
-			Summary:       request.Summary,
-			PerformedDate: &request.PerformedDate,
-		}
+	performedDate := time.Date(2024, 12, 01, 19, 00, 00, 0, time.UTC)
+	var tasksGroup = make(map[int64]models.Task)
+	tasksGroup[1] = models.Task{ID: 1, Summary: "summary of test 1", PerformedDate: &performedDate, UserID: 2}
+	tasksGroup[2] = models.Task{ID: 2, Summary: "summary of test 2", PerformedDate: &performedDate, UserID: 2}
+	tasksGroup[3] = models.Task{ID: 3, Summary: "summary of test 3", PerformedDate: &performedDate, UserID: 1}
 
-		tasks = append(tasks, task)
-
-	} else {
-		if request.Summary == "Lorem" {
-			err = errors.New("Invalid summary")
-		}
+	if request.ID == 4 {
+		fmt.Println("Chegou 1")
+		return &tasks, err
 	}
 
-	return tasks, err
+	for i, task := range tasksGroup {
+
+		if request.ID != 0 && request.UserID != 0 {
+			if i == request.ID {
+				fmt.Println("Chegou 2")
+				tasks = append(tasks, task)
+			}
+		
+		} else {
+			if i == request.ID {
+				fmt.Println("Chegou 3")
+				tasks = append(tasks, task)
+			} else {
+				fmt.Println("Chegou 4")
+				tasks = append(tasks, task)
+			}
+		}
+	}
+	
+	return &tasks, err
 
 }
 
-func (tmr *TaskMockRepository) Delete(taskId int64) bool {
+func (tmr TaskMockRepository) Delete(taskId int64) bool {
 
 	var isDeleted bool = false
 

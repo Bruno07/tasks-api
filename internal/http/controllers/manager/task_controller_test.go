@@ -1,72 +1,56 @@
 package manager
 
 import (
+	"encoding/json"
+	"net/http"
+	"net/http/httptest"
 	"testing"
-	"time"
 
+	"github.com/Bruno07/tasks-api/internal/http/policies"
 	"github.com/Bruno07/tasks-api/internal/http/requests"
+	"github.com/Bruno07/tasks-api/internal/http/responses"
 	"github.com/Bruno07/tasks-api/internal/repositories"
 	"github.com/Bruno07/tasks-api/internal/services"
+	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestTaskController_All(t *testing.T) {
 
-	t.Run("Should return a list of tasks without errors", func(t *testing.T) {
+    taskService := services.NewTaskService(
+		&repositories.TaskMockRepository{},
+		repositories.UserMockRepository{},
+	)
+	
+	taskController := NewTaskController(
+		*taskService,
+		policies.TaskPolicy{},
+	)
 
-		taskService := services.NewTaskService(
-			&repositories.TaskMockRepository{},
-			&repositories.UserMockRepository{},
-		)
+	t.Run("Should return a list of tasks", func(t *testing.T) {
 
-		var request = requests.TaskRequest{
-			ID:            1,
-			Summary:       "Lorem Ipsum",
-			PerformedDate: time.Now(),
+		gin.SetMode(gin.TestMode)
+
+		w := httptest.NewRecorder()
+		
+		ctx, _ := gin.CreateTestContext(w)
+
+		_, err := http.NewRequest(http.MethodGet, "/api/manager/tasks", nil)
+		if err != nil {
+			panic(err.Error())
 		}
 
-		response, err := taskService.All(request)
+		ctx.Set("permissions", []interface{}{"CREATE", "UPDATE", "VIEW", "DELETE"})
 
-		assert.NoError(t, err)
-		assert.NotEmpty(t, response)
+		taskController.All(ctx)
 
-	})
+		var response []responses.TaskResponse
+		json.Unmarshal(w.Body.Bytes(), &response)
 
-	t.Run("Must return an empty list without errors", func(t *testing.T) {
-
-		taskService := services.NewTaskService(
-			&repositories.TaskMockRepository{},
-			&repositories.UserMockRepository{},
-		)
-
-		var request = requests.TaskRequest{ID: 4}
-
-		response, err := taskService.All(request)
-
-		assert.NoError(t, err)
-		assert.Empty(t, response)
+		assert.Equal(t, http.StatusOK, w.Code)
+		assert.Equal(t, 3, len(response))
 
 	})
-	t.Run("Must return an empty list with errors", func(t *testing.T) {
-
-		taskService := services.NewTaskService(
-			&repositories.TaskMockRepository{},
-			&repositories.UserMockRepository{},
-		)
-
-		var request = requests.TaskRequest{
-			ID:            4,
-			Summary:       "Lorem",
-			PerformedDate: time.Now(),
-		}
-
-		response, err := taskService.All(request)
-
-		assert.Error(t, err)
-		assert.Empty(t, response)
-
-	})
-
 }
 
 func TestTaskController_Delete(t *testing.T) {

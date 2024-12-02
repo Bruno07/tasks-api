@@ -79,15 +79,11 @@ func (ur UserMockRepository) Save(request requests.UserRequest) (models.User, er
 // Find user by ID
 func (ur UserMockRepository) Find(userId int64) (models.User, error) {
 
-	if userId > 3 {
-		return models.User{}, errors.New("User not found")
-	}
+	userGroup := make(map[int64]models.User)
+	userGroup[1] = models.User{ID: 1, Name: "Teste 1", Email: "teste1@email.com"}
+	userGroup[2] = models.User{ID: 2, Name: "Teste 2", Email: "teste2@email.com"}
 
-	var user = models.User{
-		ID:    userId,
-		Name:  "master",
-		Email: "master@email.com",
-	}
+	user := userGroup[userId]
 
 	return user, nil
 }

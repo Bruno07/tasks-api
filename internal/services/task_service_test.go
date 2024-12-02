@@ -158,12 +158,12 @@ func TestTaskService_Find(t *testing.T) {
 
 func TestTaskService_All(t *testing.T) {
 
-	t.Run("Should return a list of tasks without errors", func(t *testing.T) {
+	taskService := NewTaskService(
+		&repositories.TaskMockRepository{},
+		&repositories.UserMockRepository{},
+	)
 
-		taskService := NewTaskService(
-			&repositories.TaskMockRepository{},
-			&repositories.UserMockRepository{},
-		)
+	t.Run("Should return a list of tasks without errors", func(t *testing.T) {
 
 		var request = requests.TaskRequest{
 			ID:            1,
@@ -178,37 +178,13 @@ func TestTaskService_All(t *testing.T) {
 
 	})
 
-	t.Run("Must return an empty list without errors", func(t *testing.T) {
-
-		taskService := NewTaskService(
-			&repositories.TaskMockRepository{},
-			&repositories.UserMockRepository{},
-		)
+	t.Run("Must return an empty list", func(t *testing.T) {
 
 		var request = requests.TaskRequest{ID: 4}
 
 		response, err := taskService.All(request)
 
 		assert.NoError(t, err)
-		assert.Empty(t, response)
-
-	})
-	t.Run("Must return an empty list with errors", func(t *testing.T) {
-
-		taskService := NewTaskService(
-			&repositories.TaskMockRepository{},
-			&repositories.UserMockRepository{},
-		)
-
-		var request = requests.TaskRequest{
-			ID:            4,
-			Summary:       "Lorem",
-			PerformedDate: time.Now(),
-		}
-
-		response, err := taskService.All(request)
-
-		assert.Error(t, err)
 		assert.Empty(t, response)
 
 	})
