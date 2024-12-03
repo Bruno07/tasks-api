@@ -2,7 +2,6 @@ package services
 
 import (
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/Bruno07/tasks-api/internal/http/auth"
@@ -20,16 +19,13 @@ func NewAuthService(userRepo repositories.IUserRepository) *AuthService {
 	}
 }
 
+// Authenticates user
 func (s *AuthService) Login(email string, password string) (string, int64, error) {
-
-	fmt.Println("Aqui 1")
 
 	user, err := s.userRepo.GetByEmail(email)
 	if err != nil {
 		return "", 0, err
 	}
-
-	fmt.Println("aqui 2")
 
 	if user == (&models.User{}) {
 		return "", 0, errors.New("User not found!")
@@ -47,4 +43,5 @@ func (s *AuthService) Login(email string, password string) (string, int64, error
 	}
 
 	return token, expiresAt, nil
+	
 }

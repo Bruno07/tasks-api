@@ -14,6 +14,11 @@ type UserRepository struct {
 	db *gorm.DB
 }
 
+type MockUserRepository struct {
+	MockSave func (user *models.User) error
+	MockGetByEmail func (email string) (*models.User, error)
+}
+
 func NewUserRepository(db *gorm.DB) *UserRepository {
 	return &UserRepository{
 		db: db,
@@ -34,4 +39,14 @@ func (u UserRepository) GetByEmail(email string) (*models.User, error) {
 
 	return &user, result.Error
 
+}
+
+// Save a user (Mock)
+func (m MockUserRepository) Save(user *models.User) error {
+	return m.MockSave(user)
+}
+
+// Get user by email (Mock)
+func (m MockUserRepository) GetByEmail(email string) (*models.User, error) {
+	return m.MockGetByEmail(email)
 }
