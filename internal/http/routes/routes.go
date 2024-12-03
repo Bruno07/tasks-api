@@ -8,21 +8,20 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var (
-	taskController *controllers.TaskController
-)
-
-func init() {
-
-	var taskRepo = repositories.NewTaskRepository(db.GetInstance())
-	var taskService = services.NewTaskService(taskRepo)
-	taskController = controllers.NewTaskController(*taskService)
-
-}
 
 func LoadRoutes() *gin.Engine {
 
 	router := gin.Default()
+
+	var userRepo = repositories.NewUserRepository(db.GetInstance())
+	var authService = services.NewAuthService(userRepo)
+	authController := controllers.NewAuthController(*authService)
+
+	router.POST("/login", authController.Login)
+	
+	var taskRepo = repositories.NewTaskRepository(db.GetInstance())
+	var taskService = services.NewTaskService(taskRepo)
+	taskController := controllers.NewTaskController(*taskService)
 
 	router.POST("/tasks", taskController.Create)
 
