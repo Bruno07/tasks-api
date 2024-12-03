@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"strconv"
 
 	"github.com/Bruno07/tasks-api/internal/requests"
 	"github.com/Bruno07/tasks-api/internal/services"
@@ -31,7 +32,7 @@ func (tc *TaskController) Create(c *gin.Context) {
 		})
 
 		c.Abort()
-		
+
 		return
 	}
 
@@ -46,6 +47,37 @@ func (tc *TaskController) Create(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "Task registered successfully!",
+	})
+
+}
+
+func (tc *TaskController) Update(c *gin.Context) {
+
+	body, _ := io.ReadAll(c.Request.Body)
+
+	var request = &requests.TaskRequestDTO{}
+	if err := json.Unmarshal(body, request); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "Failed to create task!",
+		})
+
+		c.Abort()
+		
+		return
+	}
+
+	taskId, _:= strconv.ParseInt(c.Param("id"), 10, 64)
+	if err := tc.taskService.Update(request, taskId); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": err.Error(),
+		})
+
+		c.Abort()
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{
+		"message": "Task updated successfully!",
 	})
 
 }
