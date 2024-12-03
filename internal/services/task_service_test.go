@@ -15,15 +15,11 @@ func TestTaskService_Create(t *testing.T) {
 
 	taskRepo := &repositories.MockTaskRepository{
 		MockSave: func(task *models.Task) (err error) {
-			if task.Title == "" {
-				err = errors.New("Title field is mandatory!")
-			}
-
-			if task.Description == "" {
-				err = errors.New("Description field is mandatory!")
-			}
+			
+			err = task.Validate()
 
 			return err
+			
 		},
 	}
 
@@ -64,12 +60,10 @@ func TestTaskService_Update(t *testing.T) {
 
 	taskRepo := &repositories.MockTaskRepository{
 		MockUpdate: func(task *models.Task, taskId int64) (err error) {
-			if task.Title == "" {
-				err = errors.New("Title field is mandatory!")
-			}
-
-			if task.Description == "" {
-				err = errors.New("Description field is mandatory!")
+			
+			err = task.Validate()
+			if err != nil {
+				return err
 			}
 
 			var taskGroup = map[int64]models.Task{}
