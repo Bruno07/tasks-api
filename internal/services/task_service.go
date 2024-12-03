@@ -52,3 +52,19 @@ func (ts *TaskService) Update(request *requests.TaskRequestDTO, taskId int64) (e
 	return err
 
 }
+
+// Update a task
+func (ts *TaskService) Find(taskId int64) (*models.Task, error) {
+
+	var task = models.Task{
+		ID: taskId,
+	}
+
+	result, err := ts.taskRepo.Find(&task)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, err
+
+}

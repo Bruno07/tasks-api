@@ -130,3 +130,58 @@ func TestTaskService_Update(t *testing.T) {
 
 	})
 }
+
+func TestTaskService_Find(t *testing.T) {
+	taskRepo := &repositories.MockTaskRepository{
+		MockFind: func(task *models.Task) (*models.Task, error) {
+
+			var err error
+			var result = models.Task{}
+
+			if task.ID == 0 {
+				err = errors.New("ID field is mandatory!")
+			}
+
+			var taskGroup = map[int64]models.Task{}
+			taskGroup[1] = models.Task{ID: 1, Title: "Test Create Task", Description: "This is my creation test", UserID: 1}
+			taskGroup[2] = models.Task{ID: 2, Title: "Test Create Task", Description: "This is my creation test", UserID: 1}
+			taskGroup[3] = models.Task{ID: 3, Title: "Test Create Task", Description: "This is my creation test", UserID: 2}
+
+			if taskGroup[task.ID] != (models.Task{}) {
+				result = taskGroup[task.ID]
+			}
+
+			return &result, err
+		},
+	}
+
+	t.Run("Must return a task", func(t *testing.T) {
+
+		service := NewTaskService(taskRepo)
+		result, err := service.Find(2)
+
+		assert.NoError(t, err)
+		assert.NotEmpty(t, result)
+
+	})
+
+	t.Run("Must return an empty task", func(t *testing.T) {
+
+		service := NewTaskService(taskRepo)
+		result, err := service.Find(4)
+
+		assert.NoError(t, err)
+		assert.Empty(t, result)
+
+	})
+
+	t.Run("It should return an error for not finding ID", func(t *testing.T) {
+
+		service := NewTaskService(taskRepo)
+		result, err := service.Find(0)
+
+		assert.Error(t, err)
+		assert.Empty(t, result)
+
+	})
+}
