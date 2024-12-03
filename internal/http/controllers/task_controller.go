@@ -58,15 +58,15 @@ func (tc *TaskController) Update(c *gin.Context) {
 	var request = &requests.TaskRequestDTO{}
 	if err := json.Unmarshal(body, request); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": "Failed to create task!",
+			"message": "Failed to update task!",
 		})
 
 		c.Abort()
-		
+
 		return
 	}
 
-	taskId, _:= strconv.ParseInt(c.Param("id"), 10, 64)
+	taskId, _ := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err := tc.taskService.Update(request, taskId); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": err.Error(),
@@ -79,5 +79,40 @@ func (tc *TaskController) Update(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "Task updated successfully!",
 	})
+
+}
+
+func (tc *TaskController) Find(c *gin.Context) {
+
+	body, _ := io.ReadAll(c.Request.Body)
+
+	var request = requests.TaskRequestDTO{}
+	if err := json.Unmarshal(body, &request); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "Failed to find task!",
+		})
+
+		c.Abort()
+
+		return
+	}
+
+	userId := c.MustGet("user_id").(int64)
+	taskId, _ := strconv.ParseInt(c.Param("id"), 10, 64)
+	request.ID = taskId
+	request.User.ID = userId
+	
+	result, err := tc.taskService.Find(&request)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": err.Error(),
+		})
+
+		c.Abort()
+		return
+	}
+
+	c.JSON(http.StatusOK, result)
 
 }
