@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/Bruno07/tasks-api/internal/infra/db"
@@ -26,6 +27,11 @@ func LoadConfig() {
 		&models.User{},
 		&models.Task{},
 	)
+
+}
+
+func GetPort() string {
+	return fmt.Sprintf(":%s", os.Getenv("APP_PORT"))
 
 }
 

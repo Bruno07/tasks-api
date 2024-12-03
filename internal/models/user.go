@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
 
 type User struct {
@@ -16,6 +17,27 @@ type User struct {
 	ProfileID int64     `gorm:"not null"`
 	CreatedAt time.Time `gorm:"autoCreateTime;type:datetime;not null"`
 	UpdateAt  time.Time `gorm:"autoUpdateTime;type:datetime;not null"`
+}
+
+const (
+	Manager   = 1
+	Technical = 2
+)
+
+func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
+
+	if len(u.Password) > 0 && !isHashed(u.Password) {
+		u.HashPassword()
+
+		return err
+	}
+
+	return err
+
+}
+
+func isHashed(password string) bool {
+	return len(password) > 0 && (password[:4] == "$2a$" || password[:4] == "$2b$" || password[:4] == "$2y$")
 }
 
 // Validate user model
@@ -70,4 +92,15 @@ func (u *User) CheckPassword(password string) bool {
 
 	return err == nil
 
+}
+
+// Get permissions by profile
+func (u *User) GetPermissions() []string {
+
+	if u.ProfileID == Technical {
+		return []string{"tasks:create", "tasks:update", "tasks:view"}
+	}
+	
+	return []string{"tasks:create", "tasks:update", "tasks:view", "tasks:delete"}
+	
 }

@@ -86,3 +86,33 @@ func TestUserModel_CheckPassword(t *testing.T) {
 
 }
 
+func TestUserModel_GetPermissions(t *testing.T) {
+
+	t.Run("Must return permissions with technician profile", func(t *testing.T) {
+		
+		var user = User{ProfileID: Technical}
+		permissions := user.GetPermissions()
+	
+		assert.Equal(t, 3, len(permissions))
+		assert.Equal(t, permissions[0], "tasks:create")
+		assert.Equal(t, permissions[1], "tasks:update")
+		assert.Equal(t, permissions[2], "tasks:view")
+
+	})
+
+	t.Run("Must return permissions with manager profile", func(t *testing.T) {
+		
+		var user = User{ProfileID: Manager}
+		permissions := user.GetPermissions()
+	
+		assert.Equal(t, 4, len(permissions))
+		assert.Equal(t, permissions[0], "tasks:create")
+		assert.Equal(t, permissions[1], "tasks:update")
+		assert.Equal(t, permissions[2], "tasks:view")
+		assert.Equal(t, permissions[3], "tasks:delete")
+
+	})
+
+
+}
+
