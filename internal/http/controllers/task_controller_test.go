@@ -41,6 +41,7 @@ func TestTaskController_Create(t *testing.T) {
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
 	r, _ := http.NewRequest(http.MethodPost, "/api/tasks", bytes.NewReader(body))
+	c.Set("permissions", []interface{}{"CREATE", "UPDATE", "VIEW", "DELETE"})
 	c.Request = r
 
 	controller := NewTaskController(*taskService)
@@ -96,6 +97,7 @@ func TestTaskController_Update(t *testing.T) {
 		c, _ := gin.CreateTestContext(w)
 		r, _ := http.NewRequest(http.MethodPut, "/api/tasks/1", bytes.NewReader(body))
 		c.AddParam("id", "1")
+		c.Set("permissions", []interface{}{"CREATE", "UPDATE", "VIEW", "DELETE"})
 		c.Request = r
 
 		controller := NewTaskController(*taskService)
@@ -120,6 +122,7 @@ func TestTaskController_Update(t *testing.T) {
 		c, _ := gin.CreateTestContext(w)
 		r, _ := http.NewRequest(http.MethodPut, "/api/tasks/4", bytes.NewReader(body))
 		c.AddParam("id", "4")
+		c.Set("permissions", []interface{}{"CREATE", "UPDATE", "VIEW", "DELETE"})
 		c.Request = r
 
 		controller := NewTaskController(*taskService)
@@ -144,6 +147,7 @@ func TestTaskController_Update(t *testing.T) {
 		c, _ := gin.CreateTestContext(w)
 		r, _ := http.NewRequest(http.MethodPut, "/api/tasks/1", bytes.NewReader(body))
 		c.AddParam("id", "1")
+		c.Set("permissions", []interface{}{"CREATE", "UPDATE", "VIEW", "DELETE"})
 		c.Request = r
 
 		controller := NewTaskController(*taskService)
@@ -203,6 +207,7 @@ func TestTaskController_Find(t *testing.T) {
 		r, _ := http.NewRequest(http.MethodGet, "/api/tasks/1", bytes.NewReader(body))
 		c.Set("user_id", int64(0))
 		c.AddParam("id", "1")
+		c.Set("permissions", []interface{}{"CREATE", "UPDATE", "VIEW", "DELETE"})
 		c.Request = r
 
 		controller.Find(c)
@@ -225,6 +230,7 @@ func TestTaskController_Find(t *testing.T) {
 		r, _ := http.NewRequest(http.MethodGet, "/api/tasks/4", bytes.NewReader(body))
 		c.Set("user_id", int64(0))
 		c.AddParam("id", "4")
+		c.Set("permissions", []interface{}{"CREATE", "UPDATE", "VIEW", "DELETE"})
 		c.Request = r
 
 		controller.Find(c)
@@ -246,6 +252,7 @@ func TestTaskController_Find(t *testing.T) {
 		c, _ := gin.CreateTestContext(w)
 		r, _ := http.NewRequest(http.MethodGet, "/api/tasks", bytes.NewReader(body))
 		c.Set("user_id", int64(0))
+		c.Set("permissions", []interface{}{"CREATE", "UPDATE", "VIEW", "DELETE"})
 		c.Request = r
 
 		controller.Find(c)
@@ -268,6 +275,7 @@ func TestTaskController_Find(t *testing.T) {
 		r, _ := http.NewRequest(http.MethodGet, "/api/tasks/1", bytes.NewReader(body))
 		c.Set("user_id", int64(1))
 		c.AddParam("id", "1")
+		c.Set("permissions", []interface{}{"CREATE", "UPDATE", "VIEW", "DELETE"})
 		c.Request = r
 
 		controller.Find(c)
@@ -290,6 +298,7 @@ func TestTaskController_Find(t *testing.T) {
 		r, _ := http.NewRequest(http.MethodGet, "/api/tasks/2", bytes.NewReader(body))
 		c.Set("user_id", int64(2))
 		c.AddParam("id", "2")
+		c.Set("permissions", []interface{}{"CREATE", "UPDATE", "VIEW", "DELETE"})
 		c.Request = r
 
 		controller.Find(c)
@@ -345,6 +354,7 @@ func TestTaskController_All(t *testing.T) {
 		c, _ := gin.CreateTestContext(w)
 		r, _ := http.NewRequest(http.MethodGet, "/api/tasks", bytes.NewReader(body))
 		c.Set("user_id", int64(0))
+		c.Set("permissions", []interface{}{"CREATE", "UPDATE", "VIEW", "DELETE"})
 		c.Request = r
 
 		controller.All(c)
@@ -366,6 +376,7 @@ func TestTaskController_All(t *testing.T) {
 		c, _ := gin.CreateTestContext(w)
 		r, _ := http.NewRequest(http.MethodGet, "/api/tasks", bytes.NewReader(body))
 		c.Set("user_id", int64(1))
+		c.Set("permissions", []interface{}{"CREATE", "UPDATE", "VIEW", "DELETE"})
 		c.Request = r
 
 		controller.All(c)
@@ -387,6 +398,7 @@ func TestTaskController_All(t *testing.T) {
 		c, _ := gin.CreateTestContext(w)
 		r, _ := http.NewRequest(http.MethodGet, "/api/tasks", bytes.NewReader(body))
 		c.Set("user_id", int64(3))
+		c.Set("permissions", []interface{}{"CREATE", "UPDATE", "VIEW", "DELETE"})
 		c.Request = r
 
 		controller.All(c)
@@ -441,6 +453,7 @@ func TestTaskService_Delete(t *testing.T) {
 		r, _ := http.NewRequest(http.MethodDelete, "/api/tasks/1", bytes.NewReader(body))
 		c.AddParam("id", "1")
 		c.Set("user_id", int64(1))
+		c.Set("permissions", []interface{}{"CREATE", "UPDATE", "VIEW", "DELETE"})
 		c.Request = r
 	
 		controller.Delete(c)
@@ -460,6 +473,7 @@ func TestTaskService_Delete(t *testing.T) {
 		r, _ := http.NewRequest(http.MethodDelete, "/api/tasks/3", bytes.NewReader(body))
 		c.AddParam("id", "3")
 		c.Set("user_id", int64(1))
+		c.Set("permissions", []interface{}{"CREATE", "UPDATE", "VIEW", "DELETE"})
 		c.Request = r
 	
 		controller.Delete(c)

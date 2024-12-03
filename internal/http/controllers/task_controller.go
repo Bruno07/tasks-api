@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/Bruno07/tasks-api/internal/policies"
 	"github.com/Bruno07/tasks-api/internal/requests"
 	"github.com/Bruno07/tasks-api/internal/services"
 	"github.com/gin-gonic/gin"
@@ -13,15 +14,27 @@ import (
 
 type TaskController struct {
 	taskService services.TaskService
+	taskPolicy  policies.TaskPolicy
 }
 
 func NewTaskController(taskService services.TaskService) *TaskController {
 	return &TaskController{
 		taskService: taskService,
+		taskPolicy: policies.TaskPolicy{},
 	}
 }
 
 func (tc *TaskController) Create(c *gin.Context) {
+
+	if !tc.taskPolicy.Allow("CREATE", c) {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"message": "Permission denied!",
+		})
+
+		c.Abort()
+
+		return
+	}
 
 	body, _ := io.ReadAll(c.Request.Body)
 
@@ -53,6 +66,16 @@ func (tc *TaskController) Create(c *gin.Context) {
 
 func (tc *TaskController) Update(c *gin.Context) {
 
+	if !tc.taskPolicy.Allow("UPDATE", c) {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"message": "Permission denied!",
+		})
+
+		c.Abort()
+
+		return
+	}
+
 	body, _ := io.ReadAll(c.Request.Body)
 
 	var request = &requests.TaskRequestDTO{}
@@ -83,6 +106,16 @@ func (tc *TaskController) Update(c *gin.Context) {
 }
 
 func (tc *TaskController) Find(c *gin.Context) {
+
+	if !tc.taskPolicy.Allow("VIEW", c) {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"message": "Permission denied!",
+		})
+
+		c.Abort()
+
+		return
+	}
 
 	body, _ := io.ReadAll(c.Request.Body)
 
@@ -119,6 +152,16 @@ func (tc *TaskController) Find(c *gin.Context) {
 
 func (tc *TaskController) All(c *gin.Context) {
 
+	if !tc.taskPolicy.Allow("VIEW", c) {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"message": "Permission denied!",
+		})
+
+		c.Abort()
+
+		return
+	}
+
 	body, _ := io.ReadAll(c.Request.Body)
 
 	var request = requests.TaskRequestDTO{}
@@ -150,6 +193,16 @@ func (tc *TaskController) All(c *gin.Context) {
 }
 
 func (tc *TaskController) Delete(c *gin.Context) {
+
+	if !tc.taskPolicy.Allow("DELETE", c) {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"message": "Permission denied!",
+		})
+
+		c.Abort()
+
+		return
+	}
 
 	body, _ := io.ReadAll(c.Request.Body)
 
