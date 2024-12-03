@@ -69,3 +69,19 @@ func (ts *TaskService) Find(request *requests.TaskRequestDTO) (*models.Task, err
 	return result, err
 
 }
+
+// Get all tasks
+func (ts *TaskService) GetAll(request *requests.TaskRequestDTO) (*[]models.Task, error) {
+
+	var task = models.Task{
+		UserID: request.User.ID,
+	}
+
+	results, err := ts.taskRepo.All(&task)
+	if err != nil {
+		return nil, err
+	}
+
+	return results, err
+
+}

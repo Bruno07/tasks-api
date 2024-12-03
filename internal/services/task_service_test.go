@@ -228,3 +228,66 @@ func TestTaskService_Find(t *testing.T) {
 
 	})
 }
+
+func TestTaskService_All(t *testing.T) {
+	taskRepo := &repositories.MockTaskRepository{
+		MockAll: func(task *models.Task) (*[]models.Task, error) {
+
+			var err error
+			var results = []models.Task{}
+
+			var tasksGroup = map[int64]models.Task{}
+			tasksGroup[1] = models.Task{ID: 1, Title: "Test Create Task", Description: "This is my creation test", UserID: 1}
+			tasksGroup[2] = models.Task{ID: 2, Title: "Test Create Task", Description: "This is my creation test", UserID: 1}
+			tasksGroup[3] = models.Task{ID: 3, Title: "Test Create Task", Description: "This is my creation test", UserID: 2}
+
+			if task.UserID == 0 {
+				for _, taskGroup := range tasksGroup {
+					results = append(results, taskGroup)
+				}
+			} else {
+				for _, taskGroup := range tasksGroup {
+					if taskGroup.UserID == task.UserID {
+						results = append(results, taskGroup)
+					}
+				}
+			}
+
+			return &results, err
+		},
+	}
+
+	t.Run("Must return available tasks to manager", func(t *testing.T) {
+
+		service := NewTaskService(taskRepo)
+		results, err := service.GetAll(&requests.TaskRequestDTO{})
+
+		assert.NoError(t, err)
+		assert.Equal(t, 3, len(*results))
+
+	})
+
+	t.Run("Must return tasks available to technician", func(t *testing.T) {
+
+		service := NewTaskService(taskRepo)
+		results, err := service.GetAll(&requests.TaskRequestDTO{
+			User: requests.UserRequestDTO{ID: 1},
+		})
+
+		assert.NoError(t, err)
+		assert.Equal(t, 2, len(*results))
+
+	})
+
+	t.Run("Must return empty task available to technician", func(t *testing.T) {
+
+		service := NewTaskService(taskRepo)
+		results, err := service.GetAll(&requests.TaskRequestDTO{
+			User: requests.UserRequestDTO{ID: 3},
+		})
+
+		assert.NoError(t, err)
+		assert.Equal(t, 0, len(*results))
+
+	})
+}
