@@ -13,7 +13,7 @@ func TestAuth_GenerateToken(t *testing.T) {
     var jw = JWT{}
     var auth = models.User{ID: 1, Name: "Test JWT", Email: "testjwt@email.com"}
     
-    signedString, err := jw.generateToken(
+    signedString, err := jw.GenerateToken(
 		&auth,
 		time.Now().Add(1 * time.Hour).Unix(),
 		"tasks-api",

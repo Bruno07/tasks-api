@@ -8,7 +8,7 @@ import (
 
 type JWT struct{}
 
-func (j *JWT) generateToken(
+func (j *JWT) GenerateToken(
 	auth *models.User,
 	expiresAt int64,
 	iss string,
