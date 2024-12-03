@@ -291,3 +291,45 @@ func TestTaskService_All(t *testing.T) {
 
 	})
 }
+
+func TestTaskService_Delete(t *testing.T) {
+	taskRepo := &repositories.MockTaskRepository{
+		MockDelete: func(taskId int64) error {
+
+			var err error
+
+			if taskId == 0 {
+				err = errors.New("ID field is mandatory!")
+			}
+
+			var taskGroup = map[int64]models.Task{}
+			taskGroup[1] = models.Task{ID: 1, Title: "Test Create Task", Description: "This is my creation test", UserID: 1}
+			taskGroup[2] = models.Task{ID: 2, Title: "Test Create Task", Description: "This is my creation test", UserID: 1}
+			taskGroup[3] = models.Task{ID: 3, Title: "Test Create Task", Description: "This is my creation test", UserID: 2}
+			
+			if taskGroup[taskId] == (models.Task{}) {
+				err = errors.New("Task not found")
+			}
+
+			return err
+		},
+	}
+
+	t.Run("Should return no error", func(t *testing.T) {
+
+		service := NewTaskService(taskRepo)
+		err := service.Delete(1)
+
+		assert.NoError(t, err)
+
+	})
+
+	t.Run("Should return an error", func(t *testing.T) {
+
+		service := NewTaskService(taskRepo)
+		err := service.Delete(4)
+
+		assert.Error(t, err)
+
+	})
+}

@@ -85,3 +85,14 @@ func (ts *TaskService) GetAll(request *requests.TaskRequestDTO) (*[]models.Task,
 	return results, err
 
 }
+
+func (ts *TaskService) Delete(taskId int64) (err error) {
+
+	err = ts.taskRepo.Delete(taskId)
+	if err != nil {
+		return err
+	}
+
+	return err
+
+}
