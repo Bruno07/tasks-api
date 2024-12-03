@@ -101,7 +101,7 @@ func (tc *TaskController) Find(c *gin.Context) {
 	taskId, _ := strconv.ParseInt(c.Param("id"), 10, 64)
 	request.ID = taskId
 	request.User.ID = userId
-	
+
 	result, err := tc.taskService.Find(&request)
 
 	if err != nil {
@@ -114,5 +114,38 @@ func (tc *TaskController) Find(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, result)
+
+}
+
+func (tc *TaskController) All(c *gin.Context) {
+
+	body, _ := io.ReadAll(c.Request.Body)
+
+	var request = requests.TaskRequestDTO{}
+	if err := json.Unmarshal(body, &request); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "Failed to find task!",
+		})
+
+		c.Abort()
+
+		return
+	}
+
+	request.User.ID = c.MustGet("user_id").(int64)
+	
+	results, err := tc.taskService.GetAll(&request)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": err.Error(),
+		})
+
+		c.Abort()
+
+		return
+	}
+
+	c.JSON(http.StatusOK, results)
 
 }

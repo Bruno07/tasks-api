@@ -227,7 +227,6 @@ func TestTaskController_Find(t *testing.T) {
 		c.AddParam("id", "4")
 		c.Request = r
 
-		controller := NewTaskController(*taskService)
 		controller.Find(c)
 
 		var task = models.Task{}
@@ -249,7 +248,6 @@ func TestTaskController_Find(t *testing.T) {
 		c.Set("user_id", int64(0))
 		c.Request = r
 
-		controller := NewTaskController(*taskService)
 		controller.Find(c)
 
 		var task = models.Task{}
@@ -272,7 +270,6 @@ func TestTaskController_Find(t *testing.T) {
 		c.AddParam("id", "1")
 		c.Request = r
 
-		controller := NewTaskController(*taskService)
 		controller.Find(c)
 
 		var task = models.Task{}
@@ -295,7 +292,6 @@ func TestTaskController_Find(t *testing.T) {
 		c.AddParam("id", "2")
 		c.Request = r
 
-		controller := NewTaskController(*taskService)
 		controller.Find(c)
 
 		var task = models.Task{}
@@ -303,6 +299,103 @@ func TestTaskController_Find(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, w.Code)
 		assert.Empty(t, task)
+
+	})
+
+}
+
+func TestTaskController_All(t *testing.T) {
+
+	taskRepo := &repositories.MockTaskRepository{
+		MockAll: func(task *models.Task) (*[]models.Task, error) {
+
+			var err error
+			var results = []models.Task{}
+
+			var tasksGroup = map[int64]models.Task{}
+			tasksGroup[1] = models.Task{ID: 1, Title: "Test Create Task", Description: "This is my creation test", UserID: 1}
+			tasksGroup[2] = models.Task{ID: 2, Title: "Test Create Task", Description: "This is my creation test", UserID: 1}
+			tasksGroup[3] = models.Task{ID: 3, Title: "Test Create Task", Description: "This is my creation test", UserID: 2}
+
+			if task.UserID == 0 {
+				for _, taskGroup := range tasksGroup {
+					results = append(results, taskGroup)
+				}
+			} else {
+				for _, taskGroup := range tasksGroup {
+					if taskGroup.UserID == task.UserID {
+						results = append(results, taskGroup)
+					}
+				}
+			}
+
+			return &results, err
+		},
+	}
+
+	var taskService = services.NewTaskService(taskRepo)
+	var controller = NewTaskController(*taskService)
+
+	t.Run("Must return available tasks to manager", func(t *testing.T) {
+
+		var request = requests.TaskRequestDTO{}
+		body, _ := json.Marshal(request)
+
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+		r, _ := http.NewRequest(http.MethodGet, "/api/tasks", bytes.NewReader(body))
+		c.Set("user_id", int64(0))
+		c.Request = r
+
+		controller.All(c)
+
+		var tasks = []models.Task{}
+		json.Unmarshal(w.Body.Bytes(), &tasks)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+		assert.Equal(t, 3, len(tasks))
+
+	})
+
+	t.Run("Must return tasks available to technician", func(t *testing.T) {
+
+		var request = requests.TaskRequestDTO{}
+		body, _ := json.Marshal(request)
+
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+		r, _ := http.NewRequest(http.MethodGet, "/api/tasks", bytes.NewReader(body))
+		c.Set("user_id", int64(1))
+		c.Request = r
+
+		controller.All(c)
+
+		var tasks = []models.Task{}
+		json.Unmarshal(w.Body.Bytes(), &tasks)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+		assert.Equal(t, 2, len(tasks))
+
+	})
+
+	t.Run("Must return empty task available to technician", func(t *testing.T) {
+
+		var request = requests.TaskRequestDTO{}
+		body, _ := json.Marshal(request)
+
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+		r, _ := http.NewRequest(http.MethodGet, "/api/tasks", bytes.NewReader(body))
+		c.Set("user_id", int64(3))
+		c.Request = r
+
+		controller.All(c)
+
+		var tasks = []models.Task{}
+		json.Unmarshal(w.Body.Bytes(), &tasks)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+		assert.Equal(t, 0, len(tasks))
 
 	})
 
