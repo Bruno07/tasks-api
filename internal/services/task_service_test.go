@@ -147,28 +147,42 @@ func TestTaskService_Find(t *testing.T) {
 			taskGroup[2] = models.Task{ID: 2, Title: "Test Create Task", Description: "This is my creation test", UserID: 1}
 			taskGroup[3] = models.Task{ID: 3, Title: "Test Create Task", Description: "This is my creation test", UserID: 2}
 
-			if taskGroup[task.ID] != (models.Task{}) {
-				result = taskGroup[task.ID]
+			if task.UserID == 0 {
+				if taskGroup[task.ID] != (models.Task{}) {
+					result = taskGroup[task.ID]
+				}
+			
+			} else {
+				if taskGroup[task.ID] != (models.Task{}) && taskGroup[task.ID].UserID == task.UserID {
+					result = taskGroup[task.ID]
+				}
 			}
+
 
 			return &result, err
 		},
 	}
 
-	t.Run("Must return a task", func(t *testing.T) {
+	t.Run("Must return available task to manager", func(t *testing.T) {
 
 		service := NewTaskService(taskRepo)
-		result, err := service.Find(2)
+		result, err := service.Find(&requests.TaskRequestDTO{
+			ID: 2,
+			User: requests.UserRequestDTO{ID: 0},
+		})
 
 		assert.NoError(t, err)
 		assert.NotEmpty(t, result)
 
 	})
 
-	t.Run("Must return an empty task", func(t *testing.T) {
+	t.Run("Must return empty task available to manager", func(t *testing.T) {
 
 		service := NewTaskService(taskRepo)
-		result, err := service.Find(4)
+		result, err := service.Find(&requests.TaskRequestDTO{
+			ID: 4,
+			User: requests.UserRequestDTO{ID: 0},
+		})
 
 		assert.NoError(t, err)
 		assert.Empty(t, result)
@@ -178,9 +192,38 @@ func TestTaskService_Find(t *testing.T) {
 	t.Run("It should return an error for not finding ID", func(t *testing.T) {
 
 		service := NewTaskService(taskRepo)
-		result, err := service.Find(0)
+		result, err := service.Find(&requests.TaskRequestDTO{
+			ID: 0,
+			User: requests.UserRequestDTO{ID: 0},
+		})
 
 		assert.Error(t, err)
+		assert.Empty(t, result)
+
+	})
+
+	t.Run("Must return task available to technician", func(t *testing.T) {
+
+		service := NewTaskService(taskRepo)
+		result, err := service.Find(&requests.TaskRequestDTO{
+			ID: 2,
+			User: requests.UserRequestDTO{ID: 1},
+		})
+
+		assert.NoError(t, err)
+		assert.NotEmpty(t, result)
+
+	})
+
+	t.Run("Must return empty task available to technician", func(t *testing.T) {
+
+		service := NewTaskService(taskRepo)
+		result, err := service.Find(&requests.TaskRequestDTO{
+			ID: 2,
+			User: requests.UserRequestDTO{ID: 2},
+		})
+
+		assert.NoError(t, err)
 		assert.Empty(t, result)
 
 	})
