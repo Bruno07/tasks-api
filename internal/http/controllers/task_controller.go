@@ -124,7 +124,7 @@ func (tc *TaskController) All(c *gin.Context) {
 	var request = requests.TaskRequestDTO{}
 	if err := json.Unmarshal(body, &request); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": "Failed to find task!",
+			"message": "Failed to list tasks!",
 		})
 
 		c.Abort()
@@ -133,7 +133,6 @@ func (tc *TaskController) All(c *gin.Context) {
 	}
 
 	request.User.ID = c.MustGet("user_id").(int64)
-	
 	results, err := tc.taskService.GetAll(&request)
 
 	if err != nil {
@@ -147,5 +146,42 @@ func (tc *TaskController) All(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, results)
+
+}
+
+func (tc *TaskController) Delete(c *gin.Context) {
+
+	body, _ := io.ReadAll(c.Request.Body)
+
+	var request = requests.TaskRequestDTO{}
+	if err := json.Unmarshal(body, &request); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "Failed to delete task!",
+		})
+
+		c.Abort()
+
+		return
+	}
+
+	userId := c.MustGet("user_id").(int64)
+	taskId, _ := strconv.ParseInt(c.Param("id"), 10, 64)
+	request.ID = taskId
+	request.User.ID = userId
+
+	err := tc.taskService.Delete(&request)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": err.Error(),
+		})
+
+		c.Abort()
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Task deleted successfully!",
+	})
 
 }

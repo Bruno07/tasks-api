@@ -400,3 +400,72 @@ func TestTaskController_All(t *testing.T) {
 	})
 
 }
+
+func TestTaskService_Delete(t *testing.T) {
+	taskRepo := &repositories.MockTaskRepository{
+		MockDelete: func(task *models.Task) error {
+
+			var err error
+
+			if task.ID == 0 {
+				err = errors.New("ID field is mandatory!")
+			}
+
+			var taskGroup = map[int64]models.Task{}
+			taskGroup[1] = models.Task{ID: 1, Title: "Test Create Task", Description: "This is my creation test", UserID: 1}
+			taskGroup[2] = models.Task{ID: 2, Title: "Test Create Task", Description: "This is my creation test", UserID: 1}
+			taskGroup[3] = models.Task{ID: 3, Title: "Test Create Task", Description: "This is my creation test", UserID: 2}
+			
+			if taskGroup[task.ID] == (models.Task{}) {
+				return errors.New("Task not found!")
+			}
+
+			if taskGroup[task.ID].UserID != task.UserID {
+				return errors.New("This task belongs to another user!")
+			}
+
+			return err
+		},
+	}
+
+	var taskService = services.NewTaskService(taskRepo)
+	controller := NewTaskController(*taskService)
+
+	t.Run("Should return no error", func(t *testing.T) {
+
+		var request = requests.TaskRequestDTO{}
+		body, _ := json.Marshal(request)
+	
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+		r, _ := http.NewRequest(http.MethodDelete, "/api/tasks/1", bytes.NewReader(body))
+		c.AddParam("id", "1")
+		c.Set("user_id", int64(1))
+		c.Request = r
+	
+		controller.Delete(c)
+	
+		assert.Equal(t, http.StatusOK, w.Code)
+		assert.Equal(t, `{"message":"Task deleted successfully!"}`, w.Body.String())
+
+	})
+
+	t.Run("An error should be returned when an attempt is made to delete another user's task", func(t *testing.T) {
+
+		var request = requests.TaskRequestDTO{}
+		body, _ := json.Marshal(request)
+	
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+		r, _ := http.NewRequest(http.MethodDelete, "/api/tasks/3", bytes.NewReader(body))
+		c.AddParam("id", "3")
+		c.Set("user_id", int64(1))
+		c.Request = r
+	
+		controller.Delete(c)
+	
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+		assert.Equal(t, `{"message":"This task belongs to another user!"}`, w.Body.String())
+
+	})
+}

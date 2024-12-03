@@ -7,7 +7,7 @@ type ITaskRepository interface {
 	Update(task *models.Task, taskId int64) error
 	Find(task *models.Task) (*models.Task, error)
 	All(task *models.Task) (*[]models.Task, error)
-	Delete(taskId int64) error
+	Delete(task *models.Task) error
 }
 
 type MockTaskRepository struct {
@@ -15,7 +15,7 @@ type MockTaskRepository struct {
 	MockUpdate func(task *models.Task, taskId int64) error
 	MockFind   func(task *models.Task) (*models.Task, error)
 	MockAll    func(task *models.Task) (*[]models.Task, error)
-	MockDelete func(taskId int64) error
+	MockDelete func(task *models.Task) error
 }
 
 // Save a task
@@ -38,6 +38,6 @@ func (mr *MockTaskRepository) All(task *models.Task) (*[]models.Task, error) {
 }
 
 // Delete a task
-func (mr *MockTaskRepository) Delete(taskId int64) error {
-	return mr.MockDelete(taskId)
+func (mr *MockTaskRepository) Delete(task *models.Task) error {
+	return mr.MockDelete(task)
 }

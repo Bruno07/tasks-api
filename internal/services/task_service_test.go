@@ -288,11 +288,11 @@ func TestTaskService_All(t *testing.T) {
 
 func TestTaskService_Delete(t *testing.T) {
 	taskRepo := &repositories.MockTaskRepository{
-		MockDelete: func(taskId int64) error {
+		MockDelete: func(task *models.Task) error {
 
 			var err error
 
-			if taskId == 0 {
+			if task.ID == 0 {
 				err = errors.New("ID field is mandatory!")
 			}
 
@@ -301,8 +301,12 @@ func TestTaskService_Delete(t *testing.T) {
 			taskGroup[2] = models.Task{ID: 2, Title: "Test Create Task", Description: "This is my creation test", UserID: 1}
 			taskGroup[3] = models.Task{ID: 3, Title: "Test Create Task", Description: "This is my creation test", UserID: 2}
 			
-			if taskGroup[taskId] == (models.Task{}) {
-				err = errors.New("Task not found")
+			if taskGroup[task.ID] == (models.Task{}) {
+				return errors.New("Task not found!")
+			}
+
+			if taskGroup[task.ID].UserID != task.UserID {
+				return errors.New("This task belongs to another user!")
 			}
 
 			return err
@@ -312,7 +316,10 @@ func TestTaskService_Delete(t *testing.T) {
 	t.Run("Should return no error", func(t *testing.T) {
 
 		service := NewTaskService(taskRepo)
-		err := service.Delete(1)
+		err := service.Delete(&requests.TaskRequestDTO{
+			ID: 2,
+			User: requests.UserRequestDTO{ID: 1},
+		})
 
 		assert.NoError(t, err)
 
@@ -321,7 +328,10 @@ func TestTaskService_Delete(t *testing.T) {
 	t.Run("Should return an error", func(t *testing.T) {
 
 		service := NewTaskService(taskRepo)
-		err := service.Delete(4)
+		err := service.Delete(&requests.TaskRequestDTO{
+			ID: 1,
+			User: requests.UserRequestDTO{ID: 3},
+		})
 
 		assert.Error(t, err)
 
