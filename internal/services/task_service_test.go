@@ -2,6 +2,7 @@ package services
 
 import (
 	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/Bruno07/tasks-api/internal/models"
@@ -12,6 +13,13 @@ import (
 
 // Task creation test
 func TestTaskService_Create(t *testing.T) {
+
+	notificationRepo := &repositories.MockNotificationRepository{
+		MockNotify: func(payload []byte, exchange, routingKey string) (err error) {
+			fmt.Println("New task created")
+			return err
+		},
+	}
 
 	taskRepo := &repositories.MockTaskRepository{
 		MockSave: func(task *models.Task) (err error) {
@@ -25,7 +33,7 @@ func TestTaskService_Create(t *testing.T) {
 
 	t.Run("Must create a task", func(t *testing.T) {
 
-		service := NewTaskService(taskRepo)
+		service := NewTaskService(taskRepo, notificationRepo)
 		err := service.Create(&requests.TaskRequestDTO{
 			Title:       "Test Create Task",
 			Description: "This is my creation test",
@@ -40,7 +48,7 @@ func TestTaskService_Create(t *testing.T) {
 
 	t.Run("It should return a validation error", func(t *testing.T) {
 
-		service := NewTaskService(taskRepo)
+		service := NewTaskService(taskRepo, notificationRepo)
 		err := service.Create(&requests.TaskRequestDTO{
 			Title:       "",
 			Description: "This is my creation test",
@@ -57,6 +65,13 @@ func TestTaskService_Create(t *testing.T) {
 
 // Task Update Test
 func TestTaskService_Update(t *testing.T) {
+
+	notificationRepo := &repositories.MockNotificationRepository{
+		MockNotify: func(payload []byte, exchange, routingKey string) (err error) {
+			fmt.Println("New task created")
+			return err
+		},
+	}
 
 	taskRepo := &repositories.MockTaskRepository{
 		MockUpdate: func(task *models.Task, taskId int64) (err error) {
@@ -81,7 +96,7 @@ func TestTaskService_Update(t *testing.T) {
 
 	t.Run("Must update a task", func(t *testing.T) {
 
-		service := NewTaskService(taskRepo)
+		service := NewTaskService(taskRepo, notificationRepo)
 		err := service.Update(&requests.TaskRequestDTO{
 			Title:       "Test Update Task",
 			Description: "This is my update test",
@@ -96,7 +111,7 @@ func TestTaskService_Update(t *testing.T) {
 
 	t.Run("It should return a validation error", func(t *testing.T) {
 
-		service := NewTaskService(taskRepo)
+		service := NewTaskService(taskRepo, notificationRepo)
 		err := service.Update(&requests.TaskRequestDTO{
 			Title:       "Test Update Task",
 			Description: "",
@@ -111,7 +126,7 @@ func TestTaskService_Update(t *testing.T) {
 
 	t.Run("Should return an error when trying to change a task for another user", func(t *testing.T) {
 
-		service := NewTaskService(taskRepo)
+		service := NewTaskService(taskRepo, notificationRepo)
 		err := service.Update(&requests.TaskRequestDTO{
 			Title:       "Test Update Task",
 			Description: "This is my creation test",
@@ -126,6 +141,8 @@ func TestTaskService_Update(t *testing.T) {
 }
 
 func TestTaskService_Find(t *testing.T) {
+	notificationRepo := &repositories.MockNotificationRepository{}
+
 	taskRepo := &repositories.MockTaskRepository{
 		MockFind: func(task *models.Task) (*models.Task, error) {
 
@@ -159,7 +176,7 @@ func TestTaskService_Find(t *testing.T) {
 
 	t.Run("Must return available task to manager", func(t *testing.T) {
 
-		service := NewTaskService(taskRepo)
+		service := NewTaskService(taskRepo, notificationRepo)
 		result, err := service.Find(&requests.TaskRequestDTO{
 			ID: 2,
 			User: requests.UserRequestDTO{ID: 0},
@@ -172,7 +189,7 @@ func TestTaskService_Find(t *testing.T) {
 
 	t.Run("Must return empty task available to manager", func(t *testing.T) {
 
-		service := NewTaskService(taskRepo)
+		service := NewTaskService(taskRepo, notificationRepo)
 		result, err := service.Find(&requests.TaskRequestDTO{
 			ID: 4,
 			User: requests.UserRequestDTO{ID: 0},
@@ -185,7 +202,7 @@ func TestTaskService_Find(t *testing.T) {
 
 	t.Run("It should return an error for not finding ID", func(t *testing.T) {
 
-		service := NewTaskService(taskRepo)
+		service := NewTaskService(taskRepo, notificationRepo)
 		result, err := service.Find(&requests.TaskRequestDTO{
 			ID: 0,
 			User: requests.UserRequestDTO{ID: 0},
@@ -198,7 +215,7 @@ func TestTaskService_Find(t *testing.T) {
 
 	t.Run("Must return task available to technician", func(t *testing.T) {
 
-		service := NewTaskService(taskRepo)
+		service := NewTaskService(taskRepo, notificationRepo)
 		result, err := service.Find(&requests.TaskRequestDTO{
 			ID: 2,
 			User: requests.UserRequestDTO{ID: 1},
@@ -211,7 +228,7 @@ func TestTaskService_Find(t *testing.T) {
 
 	t.Run("Must return empty task available to technician", func(t *testing.T) {
 
-		service := NewTaskService(taskRepo)
+		service := NewTaskService(taskRepo, notificationRepo)
 		result, err := service.Find(&requests.TaskRequestDTO{
 			ID: 2,
 			User: requests.UserRequestDTO{ID: 2},
@@ -224,6 +241,9 @@ func TestTaskService_Find(t *testing.T) {
 }
 
 func TestTaskService_All(t *testing.T) {
+
+	notificationRepo := &repositories.MockNotificationRepository{}
+
 	taskRepo := &repositories.MockTaskRepository{
 		MockAll: func(task *models.Task) (*[]models.Task, error) {
 
@@ -253,7 +273,7 @@ func TestTaskService_All(t *testing.T) {
 
 	t.Run("Must return available tasks to manager", func(t *testing.T) {
 
-		service := NewTaskService(taskRepo)
+		service := NewTaskService(taskRepo, notificationRepo)
 		results, err := service.GetAll(&requests.TaskRequestDTO{})
 
 		assert.NoError(t, err)
@@ -263,7 +283,7 @@ func TestTaskService_All(t *testing.T) {
 
 	t.Run("Must return tasks available to technician", func(t *testing.T) {
 
-		service := NewTaskService(taskRepo)
+		service := NewTaskService(taskRepo, notificationRepo)
 		results, err := service.GetAll(&requests.TaskRequestDTO{
 			User: requests.UserRequestDTO{ID: 1},
 		})
@@ -275,7 +295,7 @@ func TestTaskService_All(t *testing.T) {
 
 	t.Run("Must return empty task available to technician", func(t *testing.T) {
 
-		service := NewTaskService(taskRepo)
+		service := NewTaskService(taskRepo, notificationRepo)
 		results, err := service.GetAll(&requests.TaskRequestDTO{
 			User: requests.UserRequestDTO{ID: 3},
 		})
@@ -287,6 +307,14 @@ func TestTaskService_All(t *testing.T) {
 }
 
 func TestTaskService_Delete(t *testing.T) {
+
+	notificationRepo := &repositories.MockNotificationRepository{
+		MockNotify: func(payload []byte, exchange, routingKey string) (err error) {
+			fmt.Println("New task created")
+			return err
+		},
+	}
+
 	taskRepo := &repositories.MockTaskRepository{
 		MockDelete: func(task *models.Task) error {
 
@@ -315,7 +343,7 @@ func TestTaskService_Delete(t *testing.T) {
 
 	t.Run("Should return no error", func(t *testing.T) {
 
-		service := NewTaskService(taskRepo)
+		service := NewTaskService(taskRepo, notificationRepo)
 		err := service.Delete(&requests.TaskRequestDTO{
 			ID: 2,
 			User: requests.UserRequestDTO{ID: 1},
@@ -327,7 +355,7 @@ func TestTaskService_Delete(t *testing.T) {
 
 	t.Run("Should return an error", func(t *testing.T) {
 
-		service := NewTaskService(taskRepo)
+		service := NewTaskService(taskRepo, notificationRepo)
 		err := service.Delete(&requests.TaskRequestDTO{
 			ID: 1,
 			User: requests.UserRequestDTO{ID: 3},

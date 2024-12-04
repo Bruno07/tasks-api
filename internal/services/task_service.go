@@ -1,6 +1,8 @@
 package services
 
 import (
+	"encoding/json"
+
 	"github.com/Bruno07/tasks-api/internal/models"
 	"github.com/Bruno07/tasks-api/internal/repositories"
 	"github.com/Bruno07/tasks-api/internal/requests"
@@ -8,12 +10,17 @@ import (
 
 type TaskService struct {
 	taskRepo repositories.ITaskRepository
+	notificationRepo repositories.INotificationRepository
 }
 
 // Create an instance of the task service
-func NewTaskService(taskRepo repositories.ITaskRepository) *TaskService {
+func NewTaskService(
+	taskRepo repositories.ITaskRepository,
+	notificationRepo repositories.INotificationRepository,
+) *TaskService {
 	return &TaskService{
 		taskRepo: taskRepo,
+		notificationRepo: notificationRepo,
 	}
 }
 
@@ -30,6 +37,10 @@ func (ts *TaskService) Create(request *requests.TaskRequestDTO) (err error) {
 	if err != nil {
 		return err
 	}
+
+	notification := models.Notification{Payload: "User created a new task", UserID: task.UserID}
+	body, _ := json.Marshal(notification)
+	ts.notificationRepo.Notify(body, "notification_ex", "")
 
 	return err
 
@@ -48,6 +59,10 @@ func (ts *TaskService) Update(request *requests.TaskRequestDTO, taskId int64) (e
 	if err != nil {
 		return err
 	}
+
+	notification := models.Notification{Payload: "User updated the task", UserID: task.UserID}
+	body, _ := json.Marshal(notification)
+	ts.notificationRepo.Notify(body, "notification_ex", "")
 
 	return err
 

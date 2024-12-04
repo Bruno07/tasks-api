@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -20,6 +21,13 @@ func TestTaskController_Create(t *testing.T) {
 
 	gin.SetMode(gin.TestMode)
 
+	notificationRepo := &repositories.MockNotificationRepository{
+		MockNotify: func(payload []byte, exchange, routingKey string) (err error) {
+			fmt.Println("New task created")
+			return err
+		},
+	}
+
 	taskRepo := &repositories.MockTaskRepository{
 		MockSave: func(task *models.Task) (err error) {
 			err = task.Validate()
@@ -28,7 +36,7 @@ func TestTaskController_Create(t *testing.T) {
 		},
 	}
 
-	var taskService = services.NewTaskService(taskRepo)
+	var taskService = services.NewTaskService(taskRepo, notificationRepo)
 
 	var request = requests.TaskRequestDTO{
 		Title:       "Test create task",
@@ -57,6 +65,13 @@ func TestTaskController_Update(t *testing.T) {
 
 	gin.SetMode(gin.TestMode)
 
+	notificationRepo := &repositories.MockNotificationRepository{
+		MockNotify: func(payload []byte, exchange, routingKey string) (err error) {
+			fmt.Println("Task updated")
+			return err
+		},
+	}
+
 	taskRepo := &repositories.MockTaskRepository{
 		MockUpdate: func(task *models.Task, taskId int64) (err error) {
 			err = task.Validate()
@@ -82,7 +97,7 @@ func TestTaskController_Update(t *testing.T) {
 		},
 	}
 
-	var taskService = services.NewTaskService(taskRepo)
+	var taskService = services.NewTaskService(taskRepo, notificationRepo)
 
 	t.Run("Should return status 201 and success message", func(t *testing.T) {
 
@@ -168,6 +183,8 @@ func TestTaskController_Find(t *testing.T) {
 
 	gin.SetMode(gin.TestMode)
 
+	notificationRepo := &repositories.MockNotificationRepository{}
+
 	taskRepo := &repositories.MockTaskRepository{
 		MockFind: func(task *models.Task) (*models.Task, error) {
 
@@ -198,7 +215,7 @@ func TestTaskController_Find(t *testing.T) {
 		},
 	}
 
-	var taskService = services.NewTaskService(taskRepo)
+	var taskService = services.NewTaskService(taskRepo, notificationRepo)
 	var controller = NewTaskController(*taskService)
 
 	t.Run("Must return available task to manager", func(t *testing.T) {
@@ -319,6 +336,8 @@ func TestTaskController_Find(t *testing.T) {
 
 func TestTaskController_All(t *testing.T) {
 
+	notificationRepo := &repositories.MockNotificationRepository{}
+
 	taskRepo := &repositories.MockTaskRepository{
 		MockAll: func(task *models.Task) (*[]models.Task, error) {
 
@@ -346,7 +365,7 @@ func TestTaskController_All(t *testing.T) {
 		},
 	}
 
-	var taskService = services.NewTaskService(taskRepo)
+	var taskService = services.NewTaskService(taskRepo, notificationRepo)
 	var controller = NewTaskController(*taskService)
 
 	t.Run("Must return available tasks to manager", func(t *testing.T) {
@@ -418,6 +437,9 @@ func TestTaskController_All(t *testing.T) {
 }
 
 func TestTaskService_Delete(t *testing.T) {
+
+	notificationRepo := &repositories.MockNotificationRepository{}
+
 	taskRepo := &repositories.MockTaskRepository{
 		MockDelete: func(task *models.Task) error {
 
@@ -444,7 +466,7 @@ func TestTaskService_Delete(t *testing.T) {
 		},
 	}
 
-	var taskService = services.NewTaskService(taskRepo)
+	var taskService = services.NewTaskService(taskRepo, notificationRepo)
 	controller := NewTaskController(*taskService)
 
 	t.Run("Should return no error", func(t *testing.T) {
