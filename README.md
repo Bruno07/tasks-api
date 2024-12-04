@@ -54,13 +54,17 @@ To execute the Tasks API using docker-compose, follow these steps:
 cp .env.axample .env
 ```
 
+
 For testing purposes, some variables are already filled in, feel free to change them.
+
 
 2. Start container 
 ```bash
 docker compose up -d --build
 ```
+
 The API can be accessed at http://localhost:3000. You can use tools like Postman or cURL to interact with the API.
+
 
 This will start the following containers:
 * RabbitMQ
@@ -84,6 +88,26 @@ Users created after seeder execution:
 | tec1@email.com        | 12345678 | 2
 | tec2@email.com        | 12345678 | 2
 
+5. Configure queue
+
+* Go to http://localhost:15672/;
+* In the exchange tab, create a new one with the name notification_ex;
+* Then go to the queues tab and create a queue with the name notification_queue;
+* Finally go back to exchange and click on the created exchange (notification_ex) and bind it to the notification_queue queue;
+
+To view the messages being printed on the screen, execute the command below:
+
+Access container:
+```bash
+    docker compose exec tasks-app bash
+```
+
+Execute command to consume the queue:
+```bash
+    go run cmd/queue/main.go
+```
+
+After these steps, you need to create or update a task and you should be notified.
 
 # API Endpoints
 * POST /login: Auth login
