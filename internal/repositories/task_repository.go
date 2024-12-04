@@ -38,23 +38,46 @@ func (mr *TaskRepository) Save(task *models.Task) error {
 
 // Update a task
 func (mr *TaskRepository) Update(task *models.Task, taskId int64) error {
-	return mr.db.Create(&task).Error
+	query := mr.db.Model(&task).Where("id = ?", taskId)
+
+	if task.UserID != 0 {
+		query.Where("user_id = ?", task.UserID)
+	}
+
+	result := query.Updates(map[string]interface{}{
+		"title": task.Title,
+		"description": task.Description,
+	})
+
+	return result.Error
 }
 
 // Find a task
 func (mr *TaskRepository) Find(task *models.Task) (*models.Task, error) {
+
+	query := mr.db.Model(&task) 
 	
-	result := mr.db.Find(&task)
+	if task.UserID != 0 {
+		query.Where("user_id = ?", task.UserID)
+	}
+	
+	result := query.Find(&task)
 
 	return task, result.Error
-	
+
 }
 
 func (mr *TaskRepository) All(task *models.Task) (*[]models.Task, error) {
-	
+
 	var tasks = []models.Task{}
 
-	result := mr.db.Model(&task).Find(&tasks)
+	query := mr.db.Model(&task)
+
+	if task.UserID != 0 {
+		query.Where("user_id = ?", task.UserID)
+	}
+
+	result := query.Find(&tasks)
 
 	return &tasks, result.Error
 }

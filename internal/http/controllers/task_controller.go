@@ -26,7 +26,7 @@ func NewTaskController(taskService services.TaskService) *TaskController {
 
 func (tc *TaskController) Create(c *gin.Context) {
 
-	if !tc.taskPolicy.Allow("CREATE", c) {
+	if !tc.taskPolicy.Allow("tasks:create", c) {
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"message": "Permission denied!",
 		})
@@ -38,8 +38,10 @@ func (tc *TaskController) Create(c *gin.Context) {
 
 	body, _ := io.ReadAll(c.Request.Body)
 
-	var request = &requests.TaskRequestDTO{}
-	if err := json.Unmarshal(body, request); err != nil {
+	var request = requests.TaskRequestDTO{}
+	request.User.ID = int64(c.MustGet("user_id").(float64))
+
+	if err := json.Unmarshal(body, &request); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": "Failed to create task!",
 		})
@@ -49,7 +51,7 @@ func (tc *TaskController) Create(c *gin.Context) {
 		return
 	}
 
-	if err := tc.taskService.Create(request); err != nil {
+	if err := tc.taskService.Create(&request); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": err.Error(),
 		})
@@ -66,7 +68,7 @@ func (tc *TaskController) Create(c *gin.Context) {
 
 func (tc *TaskController) Update(c *gin.Context) {
 
-	if !tc.taskPolicy.Allow("UPDATE", c) {
+	if !tc.taskPolicy.Allow("tasks:update", c) {
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"message": "Permission denied!",
 		})
@@ -78,8 +80,9 @@ func (tc *TaskController) Update(c *gin.Context) {
 
 	body, _ := io.ReadAll(c.Request.Body)
 
-	var request = &requests.TaskRequestDTO{}
-	if err := json.Unmarshal(body, request); err != nil {
+	var request = requests.TaskRequestDTO{}
+	request.User.ID = int64(c.MustGet("user_id").(float64))
+	if err := json.Unmarshal(body, &request); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": "Failed to update task!",
 		})
@@ -90,7 +93,7 @@ func (tc *TaskController) Update(c *gin.Context) {
 	}
 
 	taskId, _ := strconv.ParseInt(c.Param("id"), 10, 64)
-	if err := tc.taskService.Update(request, taskId); err != nil {
+	if err := tc.taskService.Update(&request, taskId); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": err.Error(),
 		})
@@ -107,7 +110,7 @@ func (tc *TaskController) Update(c *gin.Context) {
 
 func (tc *TaskController) Find(c *gin.Context) {
 
-	if !tc.taskPolicy.Allow("VIEW", c) {
+	if !tc.taskPolicy.Allow("tasks:view", c) {
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"message": "Permission denied!",
 		})
@@ -117,20 +120,8 @@ func (tc *TaskController) Find(c *gin.Context) {
 		return
 	}
 
-	body, _ := io.ReadAll(c.Request.Body)
-
 	var request = requests.TaskRequestDTO{}
-	if err := json.Unmarshal(body, &request); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": "Failed to find task!",
-		})
-
-		c.Abort()
-
-		return
-	}
-
-	userId := c.MustGet("user_id").(int64)
+	userId := int64(c.MustGet("user_id").(float64))
 	taskId, _ := strconv.ParseInt(c.Param("id"), 10, 64)
 	request.ID = taskId
 	request.User.ID = userId
@@ -152,7 +143,7 @@ func (tc *TaskController) Find(c *gin.Context) {
 
 func (tc *TaskController) All(c *gin.Context) {
 
-	if !tc.taskPolicy.Allow("VIEW", c) {
+	if !tc.taskPolicy.Allow("tasks:view", c) {
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"message": "Permission denied!",
 		})
@@ -161,21 +152,9 @@ func (tc *TaskController) All(c *gin.Context) {
 
 		return
 	}
-
-	body, _ := io.ReadAll(c.Request.Body)
-
+	
 	var request = requests.TaskRequestDTO{}
-	if err := json.Unmarshal(body, &request); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": "Failed to list tasks!",
-		})
-
-		c.Abort()
-
-		return
-	}
-
-	request.User.ID = c.MustGet("user_id").(int64)
+	request.User.ID = int64(c.MustGet("user_id").(float64))
 	results, err := tc.taskService.GetAll(&request)
 
 	if err != nil {
@@ -194,7 +173,7 @@ func (tc *TaskController) All(c *gin.Context) {
 
 func (tc *TaskController) Delete(c *gin.Context) {
 
-	if !tc.taskPolicy.Allow("DELETE", c) {
+	if !tc.taskPolicy.Allow("tasks:delete", c) {
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"message": "Permission denied!",
 		})
@@ -204,20 +183,8 @@ func (tc *TaskController) Delete(c *gin.Context) {
 		return
 	}
 
-	body, _ := io.ReadAll(c.Request.Body)
-
 	var request = requests.TaskRequestDTO{}
-	if err := json.Unmarshal(body, &request); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": "Failed to delete task!",
-		})
-
-		c.Abort()
-
-		return
-	}
-
-	userId := c.MustGet("user_id").(int64)
+	userId := int64(c.MustGet("user_id").(float64))
 	taskId, _ := strconv.ParseInt(c.Param("id"), 10, 64)
 	request.ID = taskId
 	request.User.ID = userId
