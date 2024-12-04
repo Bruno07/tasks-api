@@ -8,8 +8,8 @@ RUN go mod download && go mod verify
 
 COPY . .
 
-RUN go build -o tasks-api .
+RUN go build -o main cmd/http/main.go
 
-EXPOSE 5001
+EXPOSE 3000
 
-CMD [ "./tasks-api" ]
+CMD [ "./main" ]

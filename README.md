@@ -14,7 +14,6 @@ The API follows RESTful principles, with JWT-based authentication for access con
     * [Prerequisites](#prerequisites)
     * [Installation](#installation)
 * [Usage](#usage)
-    * [Local](#local)
     * [Docker](#docker)
 * [API Endpoints](#api-endpoints)
 
@@ -46,27 +45,38 @@ go mod tidy
 ```
 # Usage
 
-## Local
+## Docker compose
+To execute the Tasks API using docker-compose, follow these steps:
 
 1. Configure environment variables:
 
+```bash
+cp .env.axample .env
+```
+
 For testing purposes, some variables are already filled in, feel free to change them.
 
-* APP_PORT=5001
-* JWT_SECRET=924a46c0284440a9ab1fc62763d6aa69
+2. Start container 
+```bash
+docker compose up -d --build
+```
+The API can be accessed at http://localhost:3000. You can use tools like Postman or cURL to interact with the API.
 
-* DB_NAME=tasks_db
-* DB_USERNAME=default
-* DB_PASSWORD=secret
-* DB_HOST=127.0.0.1
-* DB_PORT=3306
+This will start the following containers:
+* RabbitMQ
+* MYSQL
 
-2. Run seeder:
+3. Access container
+```bash
+docker compose exec tasks-app bash
+```
+
+4. Run seeder:
 ```bash
 go run cmd/seeder/main.go
 ```
 
-Users created after seeder execution
+Users created after seeder execution:
 
 | Email                 | Password | Profile
 |-----------------------|----------|--------------
@@ -74,28 +84,6 @@ Users created after seeder execution
 | tec1@email.com        | 12345678 | 2
 | tec2@email.com        | 12345678 | 2
 
-3. Build the application:
-```bash
-go build -o tasks-api cmd/http/main.go
-```
-4. Run application:
-```bash
-./tasks-api
-```
-
-The API can be accessed at http://localhost:5001. You can use tools like Postman or cURL to interact with the API.
-
-## Docker compose
-To execute the Tasks API using docker-compose, follow these steps:
-
-1. Start container 
-```bash
-docker compose up -d
-```
-
-This will start the following containers:
-* RabbitMQ
-* MYSQL
 
 # API Endpoints
 * POST /login: Auth login

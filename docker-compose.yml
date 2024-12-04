@@ -1,0 +1,49 @@
+version: "3"
+
+services:
+  tasks-app:
+    build: .
+    container_name: tasks-app
+    ports:
+      - ${APP_PORT}:3000
+    env_file:
+      - .env
+    networks:
+      - tasks-api
+    depends_on:
+      - database
+
+  rabbitmq:
+    container_name: rabbitmq
+    image: "rabbitmq:3-management"
+    ports:
+      - "${QUEUE_PORT}:5672"
+      - "${QUEUE_PORT_APP}:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: ${QUEUE_USER}
+      RABBITMQ_DEFAULT_PASS: ${QUEUE_PASSWORD}
+    networks:
+      - tasks-api
+  
+  database:
+    image: mysql:5.7
+    container_name: database
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "${DB_PORT}:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - tasks-api
+
+networks:
+  tasks-api:
+    driver: bridge
+
+volumes:
+  db_data:
